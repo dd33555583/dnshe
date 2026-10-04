@@ -35,6 +35,8 @@ jobs:
           for sub_id in subdomain_ids:
               payload = json.dumps({"subdomain_id": int(sub_id)}).encode("utf-8")
               req = urllib.request.Request(url, data=payload, method="POST")
+              
+              # 补回必不可少的身份认证头
               req.add_header("X-API-Key", api_key)
               req.add_header("X-API-Secret", api_secret)
               req.add_header("Content-Type", "application/json")
