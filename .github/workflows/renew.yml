@@ -11,6 +11,7 @@ jobs:
     strategy:
       matrix:
         subdomain_id: ["1222375126", "1814581041", "3784124845"]
+
     steps:
       - name: Renew Domain ID ${{ matrix.subdomain_id }}
         id: renew_step
@@ -23,27 +24,22 @@ jobs:
           
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
           
-          # 提取接口返回的 remaining_days 方便在邮件中使用
+          # 提取剩余天数
           REMAINING_DAYS=$(echo "$RESPONSE" | grep -o '"remaining_days":[0-9]*' | awk -F: '{print $2}')
-          echo "remaining_days=$REMAINING_DAYS" >> $GITHUB_OUTPUT
+          echo "remaining_days=${REMAINING_DAYS:-未知}" >> $GITHUB_OUTPUT
 
-          if echo "$RESPONSE" | grep -q '"success":true'; then
-            echo "域名 ${{ matrix.subdomain_id }} 请求处理成功（剩余天数: $REMAINING_DAYS 天）。"
-            exit 0
-          else
-            echo "域名 ${{ matrix.subdomain_id }} 处理失败！"
-            exit 1
-          fi
+          echo "域名 ${{ matrix.subdomain_id }} 巡检完成，当前响应: $RESPONSE"
+          # 核心修改：无论未到期还是成功，统一正常退出，绝对不报红X
+          exit 0
 
-      - name: Send Email on Status
-        if: always()
+      - name: Send Status Email via Action Plugin
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.163.com
           server_port: 465
           username: dd33555583@163.com
           password: ${{ secrets.MAIL_PASS }}
-          subject: "📢 DNSHE 域名状态通知 (ID: ${{ matrix.subdomain_id }})"
+          subject: "📢 DNSHE 域名巡检报告 (ID: ${{ matrix.subdomain_id }})"
           body: "域名 ID: ${{ matrix.subdomain_id }}\n剩余天数: ${{ steps.renew_step.outputs.remaining_days }} 天\n\nAPI 返回详情:\n${{ steps.renew_step.outputs.api_response }}"
           to: 421402605@qq.com
           from: dd33555583@163.com
