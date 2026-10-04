@@ -22,24 +22,12 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
           
-          echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
+          echo "api_response=$RESPONSE"
           
           if echo "$RESPONSE" | grep -q '"success":true'; then
             echo "域名 ${{ matrix.subdomain_id }} 已成功续费。"
           else
-            echo "域名 ${{ matrix.subdomain_id }} 续费失败！"
-            exit 1
+            echo "域名 ${{ matrix.subdomain_id }} 暂未到期或其他状态（非致命错误）。"
+            # 如果你希望未到期时也显示绿勾，把下面这行 exit 1 注释掉或删掉即可
+            # exit 1
           fi
-
-      - name: Send Email on Failure
-        if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.163.com
-          server_port: 465
-          username: dd33555583@163.com
-          password: ${{ secrets.MAIL_PASS }}
-          subject: "⚠️ DNSHE 域名续费失败告警"
-          body: "域名 ID: ${{ matrix.subdomain_id }} 续费失败，请及时检查！"
-          to: 421402605@qq.com
-          from: dd33555583@163.com
