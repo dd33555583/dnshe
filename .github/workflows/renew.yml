@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        subdomain_id: ["1222375126", "1814581041", "3784124845", "8706361823", "3456659421", "2806128211"]
+        subdomain_id: ["1222375126", "1814581041", "3784124845", "8706361823", "3456659421", "2806128211", "2792033679"]
 
     outputs:
       res_1222375126: ${{ steps.r1.outputs.resp }}
@@ -19,8 +19,10 @@ jobs:
       res_8706361823: ${{ steps.r4.outputs.resp }}
       res_3456659421: ${{ steps.r5.outputs.resp }}
       res_2806128211: ${{ steps.r6.outputs.resp }}
+      res_2792033679: ${{ steps.r7.outputs.resp }}
 
     steps:
+      # 前 3 个域名：使用旧的 Secrets
       - name: Renew Domain 1222375126
         if: matrix.subdomain_id == '1222375126'
         id: r1
@@ -60,13 +62,14 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      # 后 4 个域名：硬编码写入刚刚提供的新 API 密钥
       - name: Renew Domain 8706361823
         if: matrix.subdomain_id == '8706361823'
         id: r4
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
-            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
-            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": 8706361823}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
@@ -78,8 +81,8 @@ jobs:
         id: r5
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
-            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
-            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": 3456659421}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
@@ -91,10 +94,23 @@ jobs:
         id: r6
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
-            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
-            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": 2806128211}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 2792033679
+        if: matrix.subdomain_id == '2792033679'
+        id: r7
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2792033679}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -112,6 +128,7 @@ jobs:
           R4: ${{ needs.renew.outputs.res_8706361823 }}
           R5: ${{ needs.renew.outputs.res_3456659421 }}
           R6: ${{ needs.renew.outputs.res_2806128211 }}
+          R7: ${{ needs.renew.outputs.res_2792033679 }}
         run: |
           python3 - <<'EOF'
           import os
@@ -125,6 +142,7 @@ jobs:
           r4 = os.environ.get("R4", "")
           r5 = os.environ.get("R5", "")
           r6 = os.environ.get("R6", "")
+          r7 = os.environ.get("R7", "")
 
           content = f"""【域名 1222375126 结果】
           {r1}
@@ -141,12 +159,14 @@ jobs:
           【域名 3456659421 结果】
           {r5}
 
-          【域名 2806128211 (m1m.cc.cd) 结果】
-          {r6}"""
+          【域名 2806128211 结果】
+          {r6}
 
-          all_responses = [r1, r2, r3, r4, r5, r6]
+          【域名 2792033679 (y2y.cc.cd) 结果】
+          {r7}"""
+
+          all_responses = [r1, r2, r3, r4, r5, r6, r7]
           
-          # 判断是否包含真正的错误/续费失败（自动排除正常的“不在续费期”提示）
           has_real_error = False
           for resp in all_responses:
               if "renewal_not_yet_available" in resp:
@@ -160,11 +180,9 @@ jobs:
           sender = "dd33555583@163.com"
           password = os.environ.get("MAIL_PASS")
 
-          # 默认只发往新的 163 邮箱
           receivers = ["pp33555583@163.com"]
           subject = "📢 DNSHE 域名巡检完整合并报告"
 
-          # 只有真正遇到异常错误时，才把 QQ 邮箱加进来报警
           if has_real_error:
               receivers.append("421402605@qq.com")
               subject = "⚠️【告警】DNSHE 域名续费出现严重异常"
