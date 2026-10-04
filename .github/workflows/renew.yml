@@ -23,22 +23,8 @@ jobs:
             --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
           
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
-          echo "API 返回详情: $RESPONSE"
-          
-          # 1. 如果成功续费，直接通过
-          if echo "$RESPONSE" | grep -q '"success":true'; then
-            echo "Domain ${{ matrix.subdomain_id }} renewed successfully."
-          # 2. 如果是因为“尚未进入可续期时间窗口”，判定为正常状态，不报错
-          elif echo "$RESPONSE" | grep -q 'renewal_not_yet_available'; then
-            echo "Domain ${{ matrix.subdomain_id }} 尚未进入可续期时间窗口，属于正常状态，跳过。"
-          else
-            # 3. 其他真正的异常错误，才触发报错退出
-            echo "Domain ${{ matrix.subdomain_id }} 续期发生未知异常错误！"
-            exit 1
-          fi
 
-      - name: Send Email on Failure (Python)
-        if: failure()
+      - name: Send Status Email (Python)
         env:
           MAIL_PASS: ${{ secrets.MAIL_PASS }}
           SUBDOMAIN_ID: ${{ matrix.subdomain_id }}
@@ -46,6 +32,7 @@ jobs:
         run: |
           python3 - <<'EOF'
           import os
+          import json
           import smtplib
           from email.header import Header
           from email.mime.text import MIMEText
@@ -57,10 +44,24 @@ jobs:
           password = os.environ.get("MAIL_PASS")
 
           sub_id = os.environ.get("SUBDOMAIN_ID")
-          resp = os.environ.get("API_RESP")
+          raw_resp = os.environ.get("API_RESP")
 
-          subject = "⚠️ DNSHE 域名续费真实异常告警"
-          content = f"域名 ID: {sub_id} 发生未知续费异常，请及时检查！\n\nAPI 返回详情:\n{resp}"
+          # 尝试解析 JSON 提取剩余天数
+          days_info = "未知"
+          try:
+              data = json.loads(raw_resp)
+              # 兼容成功或未到期返回的不同结构
+              if "days_until_window" in data:
+                  days_info = f"距离可续期还有 {data['days_until_window']} 天"
+              elif "remaining_days" in data:
+                  days_info = f"剩余有效期 {data['remaining_days']} 天"
+              elif "details" in data and "days_until_window" in data["details"]:
+                  days_info = f"距离可续期还有 {data['details']['days_until_window']} 天"
+          except:
+              pass
+
+          subject = f"📢 DNSHE 域名 ({sub_id}) 巡检报告"
+          content = f"域名 ID: {sub_id}\n状态说明: {days_info}\n\n完整 API 响应:\n{raw_resp}"
 
           message = MIMEText(content, "plain", "utf-8")
           message['From'] = Header(sender, 'utf-8')
@@ -72,7 +73,7 @@ jobs:
               smtp_obj.login(sender, password)
               smtp_obj.sendmail(sender, [receiver], message.as_string())
               smtp_obj.quit()
-              print("告警邮件发送成功！")
+              print("状态邮件发送成功！")
           except Exception as e:
               print(f"邮件发送失败: {e}")
               exit(1)
