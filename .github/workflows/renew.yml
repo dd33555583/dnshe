@@ -13,7 +13,7 @@ jobs:
         subdomain_id: [
           "1222375126", "1814581041", "3784124845", "1602329997", 
           "8706361823", "3456659421", "2806128211", "2792033679",
-          "新账号域名ID1", "新账号域名ID2", "新账号域名ID3", "新账号域名ID4"
+          "2224870716", "1893289992", "2598019046", "6981160510"
         ]
 
     outputs:
@@ -31,7 +31,7 @@ jobs:
       res_id12: ${{ steps.r12.outputs.resp }}
 
     steps:
-      # --- 前 4 个域名（使用 Secrets 密钥，第一个账号） ---
+      # --- 第一个账号的 4 个域名（使用 Secrets 密钥） ---
       - name: Renew Domain 1222375126 (m8m.cc.cd)
         if: matrix.subdomain_id == '1222375126'
         id: r1
@@ -84,7 +84,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # --- 中间 4 个域名（硬编码第二个账号的固定 API 密钥） ---
+      # --- 第二个账号的 4 个域名（硬编码第二个账号的固定 API 密钥） ---
       - name: Renew Domain 8706361823 (realize.cc.cd)
         if: matrix.subdomain_id == '8706361823'
         id: r5
@@ -137,55 +137,55 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # --- 后 4 个域名（使用你刚刚生成的第三个账号的 API 密钥） ---
-      - name: Renew Domain 新账号域名ID1
-        if: matrix.subdomain_id == '新账号域名ID1'
+      # --- 第三个账号的 4 个域名（使用你刚刚生成的第三个账号密钥，包含 s6s、as6、as8、to8） ---
+      - name: Renew Domain 2224870716 (s6s.cc.cd)
+        if: matrix.subdomain_id == '2224870716'
         id: r9
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
             -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
             -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
             -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": 新账号域名ID1}')
+            --data '{"subdomain_id": 2224870716}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 新账号域名ID2
-        if: matrix.subdomain_id == '新账号域名ID2'
+      - name: Renew Domain 1893289992 (as6.cc.cd)
+        if: matrix.subdomain_id == '1893289992'
         id: r10
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
             -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
             -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
             -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": 新账号域名ID2}')
+            --data '{"subdomain_id": 1893289992}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 新账号域名ID3
-        if: matrix.subdomain_id == '新账号域名ID3'
+      - name: Renew Domain 2598019046 (as8.cc.cd)
+        if: matrix.subdomain_id == '2598019046'
         id: r11
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
             -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
             -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
             -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": 新账号域名ID3}')
+            --data '{"subdomain_id": 2598019046}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 新账号域名ID4
-        if: matrix.subdomain_id == '新账号域名ID4'
+      - name: Renew Domain 6981160510 (to8.cc.cd)
+        if: matrix.subdomain_id == '6981160510'
         id: r12
         run: |
           RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
             -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
             -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
             -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": 新账号域名ID4}')
+            --data '{"subdomain_id": 6981160510}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -253,16 +253,16 @@ jobs:
           【域名 2792033679 (y2y.cc.cd) 结果】
           {r8}
 
-          【第三个账号域名 1 结果】
+          【域名 2224870716 (s6s.cc.cd) 结果】
           {r9}
 
-          【第三个账号域名 2 结果】
+          【域名 1893289992 (as6.cc.cd) 结果】
           {r10}
 
-          【第三个账号域名 3 结果】
+          【域名 2598019046 (as8.cc.cd) 结果】
           {r11}
 
-          【第三个账号域名 4 结果】
+          【域名 6981160510 (to8.cc.cd) 结果】
           {r12}"""
 
           all_responses = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12]
