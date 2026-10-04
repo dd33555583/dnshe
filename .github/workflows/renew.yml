@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # 这里把你的两个域名对应的 subdomain_id 填进去
-        subdomain_id: ["1222375126", "你的第二个域名的ID"] 
+        subdomain_id: ["1222375126", "1814581041"]
     steps:
       - name: Renew Domain ID ${{ matrix.subdomain_id }}
         run: |
@@ -19,6 +18,4 @@ jobs:
             -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
             -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
             -H 'Content-Type: application/json' \
-            --data '{
-              "subdomain_id": ${{ matrix.subdomain_id }}
-            }'
+            --data '{"subdomain_id": ${{ matrix.subdomain_id }}}'
