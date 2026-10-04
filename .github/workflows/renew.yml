@@ -11,4 +11,6 @@ jobs:
     steps:
       - name: Send Renew Request
         run: |
-          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew" \n            -H "X-API-Key: ${{ secrets.DNSHE_API_KEY }}" \n            -H "X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}"
+          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew" \
+            -H "X-API-Key: ${{ secrets.DNSHE_API_KEY }}" \
+            -H "X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}"
