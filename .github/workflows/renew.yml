@@ -14,9 +14,32 @@ jobs:
 
     steps:
       - name: Renew Domain ID ${{ matrix.subdomain_id }}
+        id: renew_step
         run: |
-          curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+          RESPONSE=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
             -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
             -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
             -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": ${{ matrix.subdomain_id }}}'
+            --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
+          
+          echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
+          
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "Domain ${{ matrix.subdomain_id }} renewed successfully."
+          else
+            echo "Domain ${{ matrix.subdomain_id }} renewal failed!"
+            exit 1
+          fi
+
+      - name: Send Email on Failure
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.163.com
+          server_port: 465
+          username: dd33555583@163.com
+          password: ${{ secrets.MAIL_PASS }}
+          subject: "⚠️ DNSHE 域名续费失败告警"
+          body: "域名 ID: ${{ matrix.subdomain_id }} 续费失败，请及时检查！\n\nAPI 返回详情: ${{ steps.renew_step.outputs.api_response }}"
+          to: 421402605@qq.com
+          from: dd33555583@163.com
