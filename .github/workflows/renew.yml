@@ -12,6 +12,9 @@ jobs:
       matrix:
         subdomain_id: ["1222375126", "1814581041", "3784124845"]
 
+    outputs:
+      response_${{ matrix.subdomain_id }}: ${{ steps.renew_step.outputs.api_response }}
+
     steps:
       - name: Renew Domain ID ${{ matrix.subdomain_id }}
         id: renew_step
@@ -25,15 +28,26 @@ jobs:
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
           echo "API 返回结果: $RESPONSE"
 
+  send_summary:
+    needs: renew
+    runs-on: ubuntu-latest
+    steps:
       - name: Send Full Response Email
-        if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.163.com
           server_port: 465
           username: dd33555583@163.com
           password: ${{ secrets.MAIL_PASS }}
-          subject: "📢 DNSHE 域名巡检完整报告 (ID: ${{ matrix.subdomain_id }})"
-          body: "域名 ID: ${{ matrix.subdomain_id }}\n\nAPI 返回的完整原始数据:\n${{ steps.renew_step.outputs.api_response }}"
+          subject: "📢 DNSHE 域名巡检完整合并报告"
+          body: |
+            【域名 ID: 1222375126 结果】
+            ${{ needs.renew.outputs.response_1222375126 }}
+
+            【域名 ID: 1814581041 结果】
+            ${{ needs.renew.outputs.response_1814581041 }}
+
+            【域名 ID: 3784124845 结果】
+            ${{ needs.renew.outputs.response_3784124845 }}
           to: 421402605@qq.com
           from: dd33555583@163.com
