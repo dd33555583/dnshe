@@ -25,31 +25,66 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
           
-          # 对 GitHub Actions 友好的安全转义，防止 JSON 里的引号或换行打断输出
-          SAFE_RESPONSE=$(echo "$RESPONSE" | jq -aRs '.')
-          echo "api_response=$SAFE_RESPONSE" >> $GITHUB_OUTPUT
-          echo "域名 ${{ matrix.subdomain_id }} 请求完成"
+          # 使用 base64 编码传递原始响应，彻底解决换行符和双引号在 GitHub Actions 里崩溃的问题
+          ENCODED_RESPONSE=$(echo -n "$RESPONSE" | base64)
+          echo "api_response=$ENCODED_RESPONSE" >> $GITHUB_OUTPUT
 
   send_summary:
     needs: renew
     runs-on: ubuntu-latest
     steps:
-      - name: Send Combined Summary Email
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.163.com
-          server_port: 465
-          username: dd33555583@163.com
-          password: ${{ secrets.MAIL_PASS }}
-          subject: "📢 DNSHE 三个域名巡检合并报告"
-          body: |
-            【域名 1222375126 结果】
-            ${{ needs.renew.outputs.response_1222375126 }}
+      - name: Send Combined Summary Email via Python
+        env:
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          RESP_1: ${{ needs.renew.outputs.response_1222375126 }}
+          RESP_2: ${{ needs.renew.outputs.response_1814581041 }}
+          RESP_3: ${{ needs.renew.outputs.response_3784124845 }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import base64
+          import smtplib
+          from email.header import Header
+          from email.mime.text import MIMEText
 
-            【域名 1814581041 结果】
-            ${{ needs.renew.outputs.response_1814581041 }}
+          def decode_resp(encoded_str):
+              try:
+                  return base64.b64decode(encoded_str).decode('utf-8')
+              except:
+                  return encoded_str
 
-            【域名 3784124845 结果】
-            ${{ needs.renew.outputs.response_3784124845 }}
-          to: 421402605@qq.com
-          from: dd33555583@163.com
+          r1 = decode_resp(os.environ.get("RESP_1"))
+          r2 = decode_resp(os.environ.get("RESP_2"))
+          r3 = decode_resp(os.environ.get("RESP_3"))
+
+          mail_host = "smtp.163.com"
+          mail_port = 465
+          sender = "dd33555583@163.com"
+          receiver = "421402605@qq.com"
+          password = os.environ.get("MAIL_PASS")
+
+          subject = "📢 DNSHE 三个域名巡检合并报告"
+          content = f"""【域名 1222375126 结果】
+          {r1}
+
+          【域名 1814581041 结果】
+          {r2}
+
+          【域名 3784124845 结果】
+          {r3}"""
+
+          message = MIMEText(content, "plain", "utf-8")
+          message['From'] = Header(sender, 'utf-8')
+          message['To'] = Header(receiver, 'utf-8')
+          message['Subject'] = Header(subject, 'utf-8')
+
+          try:
+              smtp_obj = smtplib.SMTP_SSL(mail_host, mail_port)
+              smtp_obj.login(sender, password)
+              smtp_obj.sendmail(sender, [receiver], message.as_string())
+              smtp_obj.quit()
+              print("合并邮件发送成功！")
+          except Exception as e:
+              print(f"邮件发送失败: {e}")
+              exit(1)
+          EOF
