@@ -10,10 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        domain: ["m8m.cc.cd", "o6o.cc.cd"]
+        # 这里把你的两个域名对应的 subdomain_id 填进去
+        subdomain_id: ["1222375126", "你的第二个域名的ID"] 
     steps:
-      - name: Renew Domain ${{ matrix.domain }}
+      - name: Renew Domain ID ${{ matrix.subdomain_id }}
         run: |
-          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew&domain=${{ matrix.domain }}" \
-            -H "X-API-Key: ${{ secrets.DNSHE_API_KEY }}" \
-            -H "X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}"
+          curl -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{
+              "subdomain_id": ${{ matrix.subdomain_id }}
+            }'
