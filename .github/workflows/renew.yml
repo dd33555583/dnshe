@@ -8,9 +8,12 @@ on:
 jobs:
   renew:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        domain: ["m8m.cc.cd", "o6o.cc.cd"]
     steps:
-      - name: Send Renew Request
+      - name: Renew Domain ${{ matrix.domain }}
         run: |
-          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew" \
+          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew&domain=${{ matrix.domain }}" \
             -H "X-API-Key: ${{ secrets.DNSHE_API_KEY }}" \
             -H "X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}"
