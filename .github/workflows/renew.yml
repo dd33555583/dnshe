@@ -24,11 +24,10 @@ jobs:
           
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
           
-          # 只要返回了合法的 JSON 响应（包含 success 或 message 等字段），就视为正常，不触发红叉
-          if echo "$RESPONSE" | grep -qE '"success":true|"message":'; then
-            echo "域名 ${{ matrix.subdomain_id }} 状态正常响应。"
+          if echo "$RESPONSE" | grep -q '"success":true'; then
+            echo "域名 ${{ matrix.subdomain_id }} 已成功续费。"
           else
-            echo "域名 ${{ matrix.subdomain_id }} 请求异常！"
+            echo "域名 ${{ matrix.subdomain_id }} 续费失败！"
             exit 1
           fi
 
@@ -40,7 +39,7 @@ jobs:
           server_port: 465
           username: dd33555583@163.com
           password: ${{ secrets.MAIL_PASS }}
-          subject: "⚠️ DNSHE 域名续费异常告警 (ID: ${{ matrix.subdomain_id }})"
-          body: "域名 ID: ${{ matrix.subdomain_id }} 发生异常，请及时检查！\n\nAPI 返回的完整原始数据:\n${{ steps.renew_step.outputs.api_response }}"
+          subject: "⚠️ DNSHE 域名续费失败告警"
+          body: "域名 ID: ${{ matrix.subdomain_id }} 续费失败，请及时检查！"
           to: 421402605@qq.com
           from: dd33555583@163.com
