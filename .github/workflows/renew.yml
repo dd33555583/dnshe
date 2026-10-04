@@ -18,7 +18,6 @@ jobs:
           python3 - <<'EOF'
           import os
           import urllib.request
-          import json
           import smtplib
           from email.header import Header
           from email.mime.text import MIMEText
@@ -30,13 +29,13 @@ jobs:
           subdomain_ids = ["1222375126", "1814581041", "3784124845"]
           results = []
 
-          url = "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew"
+          base_url = "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew"
 
           for sub_id in subdomain_ids:
-              payload = json.dumps({"subdomain_id": int(sub_id)}).encode("utf-8")
-              req = urllib.request.Request(url, data=payload, method="POST")
+              # 将 subdomain_id 拼接在 URL 参数中
+              url = f"{base_url}&subdomain_id={sub_id}"
+              req = urllib.request.Request(url, method="POST")
               
-              # 补回必不可少的身份认证头
               req.add_header("X-API-Key", api_key)
               req.add_header("X-API-Secret", api_secret)
               req.add_header("Content-Type", "application/json")
