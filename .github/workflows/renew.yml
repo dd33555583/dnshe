@@ -33,7 +33,7 @@ jobs:
           server_port: 465
           username: dd33555583@163.com
           password: ${{ secrets.MAIL_PASS }}
-          subject: "📢 DNSHE 域名巡检完整报告 (ID: ${{ matrix.subdomain_id }})"
-          body: "域名 ID: ${{ matrix.subdomain_id }}\n\nAPI 返回的完整原始数据:\n${{ steps.renew_step.outputs.api_response }}"
+          subject: "📢 DNSHE 域名巡检报告 (ID: ${{ matrix.subdomain_id }})"
+          body: "域名 ID: ${{ matrix.subdomain_id }}\n\nAPI 返回内容:\n${{ steps.renew_step.outputs.api_response }}"
           to: 421402605@qq.com
           from: dd33555583@163.com
