@@ -22,24 +22,45 @@ jobs:
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
           
+          # 把返回的内容传给下一步
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
-          
-          # 提取剩余天数
-          REMAINING_DAYS=$(echo "$RESPONSE" | grep -o '"remaining_days":[0-9]*' | awk -F: '{print $2}')
-          echo "remaining_days=${REMAINING_DAYS:-未知}" >> $GITHUB_OUTPUT
 
-          echo "域名 ${{ matrix.subdomain_id }} 巡检完成，当前响应: $RESPONSE"
-          # 核心修改：无论未到期还是成功，统一正常退出，绝对不报红X
-          exit 0
+      - name: Send Raw Response via Python
+        env:
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          SUBDOMAIN_ID: ${{ matrix.subdomain_id }}
+          API_RESP: ${{ steps.renew_step.outputs.api_response }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import smtplib
+          from email.header import Header
+          from email.mime.text import MIMEText
 
-      - name: Send Status Email via Action Plugin
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.163.com
-          server_port: 465
-          username: dd33555583@163.com
-          password: ${{ secrets.MAIL_PASS }}
-          subject: "📢 DNSHE 域名巡检报告 (ID: ${{ matrix.subdomain_id }})"
-          body: "域名 ID: ${{ matrix.subdomain_id }}\n剩余天数: ${{ steps.renew_step.outputs.remaining_days }} 天\n\nAPI 返回详情:\n${{ steps.renew_step.outputs.api_response }}"
-          to: 421402605@qq.com
-          from: dd33555583@163.com
+          mail_host = "smtp.163.com"
+          mail_port = 465
+          sender = "dd33555583@163.com"
+          receiver = "421402605@qq.com"
+          password = os.environ.get("MAIL_PASS")
+
+          sub_id = os.environ.get("SUBDOMAIN_ID")
+          raw_resp = os.environ.get("API_RESP")
+
+          subject = f"📢 DNSHE 域名巡检原始数据 (ID: {sub_id})"
+          content = f"域名 ID: {sub_id}\n\nAPI 返回的完整原始数据:\n{raw_resp}"
+
+          message = MIMEText(content, "plain", "utf-8")
+          message['From'] = Header(sender, 'utf-8')
+          message['To'] = Header(receiver, 'utf-8')
+          message['Subject'] = Header(subject, 'utf-8')
+
+          try:
+              smtp_obj = smtplib.SMTP_SSL(mail_host, mail_port)
+              smtp_obj.login(sender, password)
+              smtp_obj.sendmail(sender, [receiver], message.as_string())
+              smtp_obj.quit()
+              print("邮件发送成功！")
+          except Exception as e:
+              print(f"邮件发送失败: {e}")
+              exit(1)
+          EOF
