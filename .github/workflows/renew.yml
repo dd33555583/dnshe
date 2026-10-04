@@ -10,12 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        subdomain_id: ["1222375126", "1814581041", "3784124845"]
+        subdomain_id: ["1222375126", "1814581041", "3784124845", "8706361823", "3456659421", "2806128211"]
 
     outputs:
       res_1222375126: ${{ steps.r1.outputs.resp }}
       res_1814581041: ${{ steps.r2.outputs.resp }}
       res_3784124845: ${{ steps.r3.outputs.resp }}
+      res_8706361823: ${{ steps.r4.outputs.resp }}
+      res_3456659421: ${{ steps.r5.outputs.resp }}
+      res_2806128211: ${{ steps.r6.outputs.resp }}
 
     steps:
       - name: Renew Domain 1222375126
@@ -57,6 +60,45 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Renew Domain 8706361823
+        if: matrix.subdomain_id == '8706361823'
+        id: r4
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 8706361823}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 3456659421
+        if: matrix.subdomain_id == '3456659421'
+        id: r5
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3456659421}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 2806128211
+        if: matrix.subdomain_id == '2806128211'
+        id: r6
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2806128211}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   send_summary:
     needs: renew
     runs-on: ubuntu-latest
@@ -67,6 +109,9 @@ jobs:
           R1: ${{ needs.renew.outputs.res_1222375126 }}
           R2: ${{ needs.renew.outputs.res_1814581041 }}
           R3: ${{ needs.renew.outputs.res_3784124845 }}
+          R4: ${{ needs.renew.outputs.res_8706361823 }}
+          R5: ${{ needs.renew.outputs.res_3456659421 }}
+          R6: ${{ needs.renew.outputs.res_2806128211 }}
         run: |
           python3 - <<'EOF'
           import os
@@ -77,6 +122,9 @@ jobs:
           r1 = os.environ.get("R1", "")
           r2 = os.environ.get("R2", "")
           r3 = os.environ.get("R3", "")
+          r4 = os.environ.get("R4", "")
+          r5 = os.environ.get("R5", "")
+          r6 = os.environ.get("R6", "")
 
           content = f"""【域名 1222375126 结果】
           {r1}
@@ -85,16 +133,24 @@ jobs:
           {r2}
 
           【域名 3784124845 结果】
-          {r3}"""
+          {r3}
 
-          all_text = (r1 + r2 + r3).lower()
+          【域名 8706361823 结果】
+          {r4}
+
+          【域名 3456659421 结果】
+          {r5}
+
+          【域名 2806128211 (m1m.cc.cd) 结果】
+          {r6}"""
+
+          all_responses = [r1, r2, r3, r4, r5, r6]
           
-          # 核心修复：把“renewal_not_yet_available”（不在续期窗口）排除在外
-          # 只有当返回包含 "fail"、"error_code" 但不属于未到期提示，或者出现服务器 500 等严重错误时才报警
+          # 判断是否包含真正的错误/续费失败（自动排除正常的“不在续费期”提示）
           has_real_error = False
-          for resp in [r1, r2, r3]:
+          for resp in all_responses:
               if "renewal_not_yet_available" in resp:
-                  continue # 这是正常的未到期提示，忽略
+                  continue
               if "error" in resp.lower() or "fail" in resp.lower() or '"success":false' in resp.lower():
                   has_real_error = True
                   break
@@ -108,13 +164,13 @@ jobs:
           receivers = ["pp33555583@163.com"]
           subject = "📢 DNSHE 域名巡检完整合并报告"
 
-          # 只有真正遇到严重错误时，才把 QQ 邮箱加进来报警
+          # 只有真正遇到异常错误时，才把 QQ 邮箱加进来报警
           if has_real_error:
               receivers.append("421402605@qq.com")
               subject = "⚠️【告警】DNSHE 域名续费出现严重异常"
               print("检测到真实错误异常，已抄送至 QQ 邮箱！")
           else:
-              print("目前所有域名均处于正常的‘不在续费期’状态，仅发送至 pp33555583@163.com。")
+              print("所有域名状态正常或处于不在续费期，仅发送至 pp33555583@163.com。")
 
           message = MIMEText(content, "plain", "utf-8")
           message['From'] = Header(sender, 'utf-8')
