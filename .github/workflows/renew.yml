@@ -6,71 +6,77 @@ on:
   workflow_dispatch:
 
 jobs:
-  renew_all:
+  renew:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        subdomain_id: ["1222375126", "1814581041", "3784124845"]
+
+    outputs:
+      res_1222375126: ${{ steps.r1.outputs.resp }}
+      res_1814581041: ${{ steps.r2.outputs.resp }}
+      res_3784124845: ${{ steps.r3.outputs.resp }}
+
+    steps:
+      - name: Renew Domain 1222375126
+        if: matrix.subdomain_id == '1222375126'
+        id: r1
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1222375126}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 1814581041
+        if: matrix.subdomain_id == '1814581041'
+        id: r2
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1814581041}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 3784124845
+        if: matrix.subdomain_id == '3784124845'
+        id: r3
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3784124845}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  send_summary:
+    needs: renew
     runs-on: ubuntu-latest
     steps:
-      - name: Run and Send Combined Report
-        env:
-          API_KEY: ${{ secrets.DNSHE_API_KEY }}
-          API_SECRET: ${{ secrets.DNSHE_API_SECRET }}
-          MAIL_PASS: ${{ secrets.MAIL_PASS }}
-        run: |
-          python3 - <<'EOF'
-          import os
-          import urllib.request
-          import json
-          import smtplib
-          from email.header import Header
-          from email.mime.text import MIMEText
+      - name: Send Combined Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.163.com
+          server_port: 465
+          username: dd33555583@163.com
+          password: ${{ secrets.MAIL_PASS }}
+          subject: "📢 DNSHE 域名巡检完整合并报告"
+          body: |
+            【域名 1222375126 结果】
+            ${{ needs.renew.outputs.res_1222375126 }}
 
-          api_key = os.environ.get("API_KEY")
-          api_secret = os.environ.get("API_SECRET")
-          password = os.environ.get("MAIL_PASS")
+            【域名 1814581041 结果】
+            ${{ needs.renew.outputs.res_1814581041 }}
 
-          subdomain_ids = ["1222375126", "1814581041", "3784124845"]
-          results = []
-
-          url = "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew"
-
-          for sub_id in subdomain_ids:
-              # 将 subdomain_id 放在 JSON 请求体中，并转换为整数类型
-              payload = json.dumps({"subdomain_id": int(sub_id)}).encode("utf-8")
-              req = urllib.request.Request(url, data=payload, method="POST")
-              
-              req.add_header("X-API-Key", api_key)
-              req.add_header("X-API-Secret", api_secret)
-              req.add_header("Content-Type", "application/json")
-              
-              try:
-                  with urllib.request.urlopen(req) as response:
-                      res_body = response.read().decode("utf-8")
-                      results.append(f"【域名 ID: {sub_id} 结果】\n{res_body}\n")
-              except Exception as e:
-                  results.append(f"【域名 ID: {sub_id} 结果】\n请求异常: {str(e)}\n")
-
-          # 合并所有结果
-          combined_content = "\n".join(results)
-          print(combined_content)
-
-          # 发送合并邮件
-          mail_host = "smtp.163.com"
-          mail_port = 465
-          sender = "dd33555583@163.com"
-          receiver = "421402605@qq.com"
-
-          subject = "📢 DNSHE 域名巡检完整合并报告"
-          message = MIMEText(combined_content, "plain", "utf-8")
-          message['From'] = Header(sender, 'utf-8')
-          message['To'] = Header(receiver, 'utf-8')
-          message['Subject'] = Header(subject, 'utf-8')
-
-          try:
-              smtp_obj = smtplib.SMTP_SSL(mail_host, mail_port)
-              smtp_obj.login(sender, password)
-              smtp_obj.sendmail(sender, [receiver], message.as_string())
-              smtp_obj.quit()
-              print("合并邮件发送成功！")
-          except Exception as e:
-              print(f"邮件发送失败: {e}")
-              exit(1)
-          EOF
+            【域名 3784124845 结果】
+            ${{ needs.renew.outputs.res_3784124845 }}
+          to: 421402605@qq.com
+          from: dd33555583@163.com
