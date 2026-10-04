@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        subdomain_id: ["1222375126", "1814581041"]
+        subdomain_id: ["1222375126", "1814581041", "3784124845"]
     steps:
       - name: Renew Domain ID ${{ matrix.subdomain_id }}
         run: |
