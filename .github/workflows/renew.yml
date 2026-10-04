@@ -24,7 +24,6 @@ jobs:
           
           echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
           
-          # 如果 API 返回的不是 success:true，直接让这一步报错退出，从而触发后面的邮件通知
           if echo "$RESPONSE" | grep -q '"success":true'; then
             echo "Domain ${{ matrix.subdomain_id }} renewed successfully."
           else
@@ -32,15 +31,43 @@ jobs:
             exit 1
           fi
 
-      - name: Send Email on Failure
+      - name: Send Email on Failure (Python)
         if: failure()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.163.com
-          server_port: 465
-          username: dd33555583@163.com
-          password: ${{ secrets.MAIL_PASS }}
-          subject: "⚠️ DNSHE 域名续费失败告警"
-          body: "域名 ID: ${{ matrix.subdomain_id }} 续费失败，请及时检查！\n\nAPI 返回详情: ${{ steps.renew_step.outputs.api_response }}"
-          to: 421402605@qq.com
-          from: dd33555583@163.com
+        env:
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          SUBDOMAIN_ID: ${{ matrix.subdomain_id }}
+          API_RESP: ${{ steps.renew_step.outputs.api_response }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import smtplib
+          from email.header import Header
+          from email.mime.text import MIMEText
+
+          mail_host = "smtp.163.com"
+          mail_port = 465
+          sender = "dd33555583@163.com"
+          receiver = "421402605@qq.com"
+          password = os.environ.get("MAIL_PASS")
+
+          sub_id = os.environ.get("SUBDOMAIN_ID")
+          resp = os.environ.get("API_RESP")
+
+          subject = "⚠️ DNSHE 域名续费失败告警"
+          content = f"域名 ID: {sub_id} 续费失败，请及时检查！\n\nAPI 返回详情:\n{resp}"
+
+          message = MIMEText(content, "plain", "utf-8")
+          message['From'] = Header(sender, 'utf-8')
+          message['To'] = Header(receiver, 'utf-8')
+          message['Subject'] = Header(subject, 'utf-8')
+
+          try:
+              smtp_obj = smtplib.SMTP_SSL(mail_host, mail_port)
+              smtp_obj.login(sender, password)
+              smtp_obj.sendmail(sender, [receiver], message.as_string())
+              smtp_obj.quit()
+              print("邮件发送成功！")
+          except Exception as e:
+              print(f"邮件发送失败: {e}")
+              exit(1)
+          EOF
