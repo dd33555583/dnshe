@@ -89,8 +89,15 @@ jobs:
 
           all_text = (r1 + r2 + r3).lower()
           
-          # 判断是否包含真正的错误/续费失败（排除了常规的“不在续费期”提示）
-          has_real_error = "error" in all_text or "fail" in all_text or '"success":false' in all_text
+          # 核心修复：把“renewal_not_yet_available”（不在续期窗口）排除在外
+          # 只有当返回包含 "fail"、"error_code" 但不属于未到期提示，或者出现服务器 500 等严重错误时才报警
+          has_real_error = False
+          for resp in [r1, r2, r3]:
+              if "renewal_not_yet_available" in resp:
+                  continue # 这是正常的未到期提示，忽略
+              if "error" in resp.lower() or "fail" in resp.lower() or '"success":false' in resp.lower():
+                  has_real_error = True
+                  break
 
           mail_host = "smtp.163.com"
           mail_port = 465
@@ -101,13 +108,13 @@ jobs:
           receivers = ["pp33555583@163.com"]
           subject = "📢 DNSHE 域名巡检完整合并报告"
 
-          # 只有在检测到真正的错误/续费失败时，才把 QQ 邮箱加进来报警
+          # 只有真正遇到严重错误时，才把 QQ 邮箱加进来报警
           if has_real_error:
               receivers.append("421402605@qq.com")
-              subject = "⚠️【告警】DNSHE 域名续费出现异常错误"
-              print("检测到续费异常错误，已抄送至 QQ 邮箱！")
+              subject = "⚠️【告警】DNSHE 域名续费出现严重异常"
+              print("检测到真实错误异常，已抄送至 QQ 邮箱！")
           else:
-              print("状态正常或处于不在续费期，仅发送至 pp33555583@163.com。")
+              print("目前所有域名均处于正常的‘不在续费期’状态，仅发送至 pp33555583@163.com。")
 
           message = MIMEText(content, "plain", "utf-8")
           message['From'] = Header(sender, 'utf-8')
