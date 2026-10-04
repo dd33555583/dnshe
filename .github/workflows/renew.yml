@@ -23,8 +23,8 @@ jobs:
       res_2792033679: ${{ steps.r8.outputs.resp }}
 
     steps:
-      # 前 4 个域名（含新加的 n7n.cc.cd）：使用 Secrets 变量
-      - name: Renew Domain 1222375126
+      # 前 4 个域名（使用 Secrets 密钥）
+      - name: Renew Domain 1222375126 (m8m.cc.cd)
         if: matrix.subdomain_id == '1222375126'
         id: r1
         run: |
@@ -37,7 +37,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 1814581041
+      - name: Renew Domain 1814581041 (o6o.cc.cd)
         if: matrix.subdomain_id == '1814581041'
         id: r2
         run: |
@@ -50,7 +50,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 3784124845
+      - name: Renew Domain 3784124845 (m7m.cc.cd)
         if: matrix.subdomain_id == '3784124845'
         id: r3
         run: |
@@ -76,8 +76,8 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # 后 4 个域名：硬编码写入固定的 API 密钥
-      - name: Renew Domain 8706361823
+      # 后 4 个域名（硬编码写入固定的 API 密钥）
+      - name: Renew Domain 8706361823 (realize.cc.cd)
         if: matrix.subdomain_id == '8706361823'
         id: r5
         run: |
@@ -90,7 +90,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 3456659421
+      - name: Renew Domain 3456659421 (m6m.cc.cd)
         if: matrix.subdomain_id == '3456659421'
         id: r6
         run: |
@@ -103,7 +103,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 2806128211
+      - name: Renew Domain 2806128211 (m1m.cc.cd)
         if: matrix.subdomain_id == '2806128211'
         id: r7
         run: |
@@ -116,7 +116,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Renew Domain 2792033679
+      - name: Renew Domain 2792033679 (y2y.cc.cd)
         if: matrix.subdomain_id == '2792033679'
         id: r8
         run: |
@@ -160,25 +160,25 @@ jobs:
           r7 = os.environ.get("R7", "")
           r8 = os.environ.get("R8", "")
 
-          content = f"""【域名 1222375126 结果】
+          content = f"""【域名 1222375126 (m8m.cc.cd) 结果】
           {r1}
 
-          【域名 1814581041 结果】
+          【域名 1814581041 (o6o.cc.cd) 结果】
           {r2}
 
-          【域名 3784124845 结果】
+          【域名 3784124845 (m7m.cc.cd) 结果】
           {r3}
 
           【域名 1602329997 (n7n.cc.cd) 结果】
           {r4}
 
-          【域名 8706361823 结果】
+          【域名 8706361823 (realize.cc.cd) 结果】
           {r5}
 
-          【域名 3456659421 结果】
+          【域名 3456659421 (m6m.cc.cd) 结果】
           {r6}
 
-          【域名 2806128211 结果】
+          【域名 2806128211 (m1m.cc.cd) 结果】
           {r7}
 
           【域名 2792033679 (y2y.cc.cd) 结果】
