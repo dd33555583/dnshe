@@ -10,7 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        subdomain_id: ["1222375126", "1814581041", "3784124845", "1602329997", "8706361823", "3456659421", "2806128211", "2792033679"]
+        subdomain_id: [
+          "1222375126", "1814581041", "3784124845", "1602329997", 
+          "8706361823", "3456659421", "2806128211", "2792033679",
+          "新账号域名ID1", "新账号域名ID2", "新账号域名ID3", "新账号域名ID4"
+        ]
 
     outputs:
       res_1222375126: ${{ steps.r1.outputs.resp }}
@@ -21,9 +25,13 @@ jobs:
       res_3456659421: ${{ steps.r6.outputs.resp }}
       res_2806128211: ${{ steps.r7.outputs.resp }}
       res_2792033679: ${{ steps.r8.outputs.resp }}
+      res_id9: ${{ steps.r9.outputs.resp }}
+      res_id10: ${{ steps.r10.outputs.resp }}
+      res_id11: ${{ steps.r11.outputs.resp }}
+      res_id12: ${{ steps.r12.outputs.resp }}
 
     steps:
-      # 前 4 个域名（使用 Secrets 密钥）
+      # --- 前 4 个域名（使用 Secrets 密钥，第一个账号） ---
       - name: Renew Domain 1222375126 (m8m.cc.cd)
         if: matrix.subdomain_id == '1222375126'
         id: r1
@@ -76,7 +84,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # 后 4 个域名（硬编码写入固定的 API 密钥）
+      # --- 中间 4 个域名（硬编码第二个账号的固定 API 密钥） ---
       - name: Renew Domain 8706361823 (realize.cc.cd)
         if: matrix.subdomain_id == '8706361823'
         id: r5
@@ -129,6 +137,59 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      # --- 后 4 个域名（使用你刚刚生成的第三个账号的 API 密钥） ---
+      - name: Renew Domain 新账号域名ID1
+        if: matrix.subdomain_id == '新账号域名ID1'
+        id: r9
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 新账号域名ID1}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 新账号域名ID2
+        if: matrix.subdomain_id == '新账号域名ID2'
+        id: r10
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 新账号域名ID2}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 新账号域名ID3
+        if: matrix.subdomain_id == '新账号域名ID3'
+        id: r11
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 新账号域名ID3}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 新账号域名ID4
+        if: matrix.subdomain_id == '新账号域名ID4'
+        id: r12
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 新账号域名ID4}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
   send_summary:
     needs: renew
     runs-on: ubuntu-latest
@@ -144,6 +205,10 @@ jobs:
           R6: ${{ needs.renew.outputs.res_3456659421 }}
           R7: ${{ needs.renew.outputs.res_2806128211 }}
           R8: ${{ needs.renew.outputs.res_2792033679 }}
+          R9: ${{ needs.renew.outputs.res_id9 }}
+          R10: ${{ needs.renew.outputs.res_id10 }}
+          R11: ${{ needs.renew.outputs.res_id11 }}
+          R12: ${{ needs.renew.outputs.res_id12 }}
         run: |
           python3 - <<'EOF'
           import os
@@ -159,6 +224,10 @@ jobs:
           r6 = os.environ.get("R6", "")
           r7 = os.environ.get("R7", "")
           r8 = os.environ.get("R8", "")
+          r9 = os.environ.get("R9", "")
+          r10 = os.environ.get("R10", "")
+          r11 = os.environ.get("R11", "")
+          r12 = os.environ.get("R12", "")
 
           content = f"""【域名 1222375126 (m8m.cc.cd) 结果】
           {r1}
@@ -182,9 +251,21 @@ jobs:
           {r7}
 
           【域名 2792033679 (y2y.cc.cd) 结果】
-          {r8}"""
+          {r8}
 
-          all_responses = [r1, r2, r3, r4, r5, r6, r7, r8]
+          【第三个账号域名 1 结果】
+          {r9}
+
+          【第三个账号域名 2 结果】
+          {r10}
+
+          【第三个账号域名 3 结果】
+          {r11}
+
+          【第三个账号域名 4 结果】
+          {r12}"""
+
+          all_responses = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12]
           
           has_real_error = False
           for resp in all_responses:
