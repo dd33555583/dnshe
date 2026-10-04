@@ -1,30 +1,4 @@
-name: DNSHE Auto Renew
-
-on:
-  schedule:
-    - cron: '0 0 1 * *'
-  workflow_dispatch:
-
-jobs:
-  renew:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        subdomain_id: ["1222375126", "1814581041", "3784124845"]
-
-    steps:
-      - name: Renew Domain ID ${{ matrix.subdomain_id }}
-        id: renew_step
-        run: |
-          RESPONSE=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
-            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
-            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
-            -H 'Content-Type: application/json' \
-            --data '{"subdomain_id": ${{ matrix.subdomain_id }}}')
-          
-          echo "api_response=$RESPONSE" >> $GITHUB_OUTPUT
-
-      - name: Send Status Email via Action Plugin
+- name: Send Status Email via Action Plugin
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.163.com
