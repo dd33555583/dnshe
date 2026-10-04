@@ -1,0 +1,14 @@
+name: DNSHE Auto Renew
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Renew Request
+        run: |
+          curl -X POST "https://api005.dnshe.com/index.php?m=domain_hub&endpoint=domain&action=renew" \n            -H "X-API-Key: ${{ secrets.DNSHE_API_KEY }}" \n            -H "X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}"
