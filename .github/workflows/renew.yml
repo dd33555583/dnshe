@@ -1,59 +1,415 @@
-import requests
+name: DNSHE Auto Renew
 
-# ----------------- 完整配置区域 (共 20 个域名) -----------------
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
 
-# 1. 旧账号凭证（对应前 14 个域名）
-OLD_API_KEY = "你的旧账号API_KEY"
-old_domains = [
-    # {"name": "旧域名1", "id": "旧ID1"},
-    # {"name": "旧域名2", "id": "旧ID2"},
-    # ... 请把原有的 14 个域名及 ID 完整填在这里 ...
-]
+jobs:
+  renew:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        subdomain_id: [
+          "1222375126", "1814581041", "3784124845", "1602329997", 
+          "8706361823", "3456659421", "2806128211", "2792033679",
+          "2224870716", "1893289992", "2598019046", "6981160510",
+          "1005271348", "3404715460", "5735127216", "1070726860",
+          "1316396709", "8679294577", "3753518263", "2473373489"
+        ]
 
-# 2. 新账号凭证（对应这 6 个新域名）
-NEW_API_KEY = "cfsd_44e5532a2fb00321fec734d8f60b0a3e"
-NEW_API_SECRET = "91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46"
+    outputs:
+      res_1222375126: ${{ steps.r1.outputs.resp }}
+      res_1814581041: ${{ steps.r2.outputs.resp }}
+      res_3784124845: ${{ steps.r3.outputs.resp }}
+      res_1602329997: ${{ steps.r4.outputs.resp }}
+      res_8706361823: ${{ steps.r5.outputs.resp }}
+      res_3456659421: ${{ steps.r6.outputs.resp }}
+      res_2806128211: ${{ steps.r7.outputs.resp }}
+      res_2792033679: ${{ steps.r8.outputs.resp }}
+      res_id9: ${{ steps.r9.outputs.resp }}
+      res_id10: ${{ steps.r10.outputs.resp }}
+      res_id11: ${{ steps.r11.outputs.resp }}
+      res_id12: ${{ steps.r12.outputs.resp }}
+      res_id13: ${{ steps.r13.outputs.resp }}
+      res_id14: ${{ steps.r14.outputs.resp }}
+      res_id15: ${{ steps.r15.outputs.resp }}
+      res_id16: ${{ steps.r16.outputs.resp }}
+      res_id17: ${{ steps.r17.outputs.resp }}
+      res_id18: ${{ steps.r18.outputs.resp }}
+      res_id19: ${{ steps.r19.outputs.resp }}
+      res_id20: ${{ steps.r20.outputs.resp }}
 
-new_domains = [
-    {"name": "q2q.cc.cd", "id": "5735127216"},
-    {"name": "q8q.cc.cd", "id": "1070726860"},
-    {"name": "aa7.cc.cd", "id": "1316396709"},
-    {"name": "aa2.cc.cd", "id": "8679294577"},
-    {"name": "f2f.cc.cd", "id": "3753518263"},
-    {"name": "as7.cc.cd", "id": "2473373489"},
-]
-# -----------------------------------------------------------
-
-def process_domains(api_key, api_secret, domains, group_name):
-    print(f"\n=== 开始执行: {group_name} (共 {len(domains)} 个域名) ===")
-    for item in domains:
-        domain_name = item["name"]
-        domain_id = item["id"]
-        
-        # 拼接续期请求 URL
-        url = f"https://my.dnshe.com/index.php?id=9&m=domain_hub&view=domain&domain_id={domain_id}"
-        
-        # 根据你原有的鉴权方式（若新旧账号验证头有区别可在这里微调）
-        headers = {
-            "Cookie": f"api_key={api_key}"
-        }
-        
-        try:
-            response = requests.get(url, headers=headers, timeout=10)
-            print(f"域名: {domain_name} (ID: {domain_id}) -> 状态码: {response.status_code}")
-            
-            # 尝试解析返回的 JSON，或者判断是否有内容
-            if response.headers.get('content-type', '').startswith('application/json'):
-                print(f"  └─ 响应: {response.json()}")
-            elif "404" in response.text:
-                print(f"  └─ 错误: 返回 404")
-        except Exception as e:
-            print(f"  └─ 域名 {domain_name} 请求出错: {e}")
-
-if __name__ == "__main__":
-    # 1. 批量处理旧账号的 14 个域名
-    if old_domains:
-        process_domains(OLD_API_KEY, "", old_domains, "旧账号组 (14个域名)")
-    
-    # 2. 批量处理新账号的 6 个域名
-    process_domains(NEW_API_KEY, NEW_API_SECRET, new_domains, "新账号组 (6个新域名)")
+    steps:
+      # --- 第一个账号的域名（使用 Secrets 密钥） ---
+      - name: Renew Domain 1222375126 (m8m.cc.cd)
+        if: matrix.subdomain_id == '1222375126'
+        id: r1
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1222375126}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1814581041 (o6o.cc.cd)
+        if: matrix.subdomain_id == '1814581041'
+        id: r2
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1814581041}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 3784124845 (m7m.cc.cd)
+        if: matrix.subdomain_id == '3784124845'
+        id: r3
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3784124845}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1602329997 (n7n.cc.cd)
+        if: matrix.subdomain_id == '1602329997'
+        id: r4
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1602329997}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1005271348 (q1q.cc.cd)
+        if: matrix.subdomain_id == '1005271348'
+        id: r13
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1005271348}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 3404715460 (as2.cc.cd)
+        if: matrix.subdomain_id == '3404715460'
+        id: r14
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3404715460}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      # --- 第二个账号的 4 个域名 ---
+      - name: Renew Domain 8706361823 (realize.cc.cd)
+        if: matrix.subdomain_id == '8706361823'
+        id: r5
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 8706361823}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 3456659421 (m6m.cc.cd)
+        if: matrix.subdomain_id == '3456659421'
+        id: r6
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3456659421}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 2806128211 (m1m.cc.cd)
+        if: matrix.subdomain_id == '2806128211'
+        id: r7
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2806128211}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 2792033679 (y2y.cc.cd)
+        if: matrix.subdomain_id == '2792033679'
+        id: r8
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_34b8d19b77954dacbfd3318c599b99a1' \
+            -H 'X-API-Secret: 6a801f3a37fa41f166c964970049992f2442faa5c6686442ef27e93b17219d71' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2792033679}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      # --- 第三个账号的 4 个域名 ---
+      - name: Renew Domain 2224870716 (s6s.cc.cd)
+        if: matrix.subdomain_id == '2224870716'
+        id: r9
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2224870716}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1893289992 (as6.cc.cd)
+        if: matrix.subdomain_id == '1893289992'
+        id: r10
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1893289992}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 2598019046 (as8.cc.cd)
+        if: matrix.subdomain_id == '2598019046'
+        id: r11
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2598019046}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 6981160510 (to8.cc.cd)
+        if: matrix.subdomain_id == '6981160510'
+        id: r12
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_bf2e23f60ba6ad72c2a2fa6c3505aacc' \
+            -H 'X-API-Secret: e6d2a468422a7e31521c7597f920aa07f00a4495f0f4e86f56f44779e29c34b4' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 6981160510}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      # --- 第四个账号的 6 个新域名（使用你刚提供的真实新 API Key 和 Secret） ---
+      - name: Renew Domain 5735127216 (q2q.cc.cd)
+        if: matrix.subdomain_id == '5735127216'
+        id: r15
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 5735127216}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1070726860 (q8q.cc.cd)
+        if: matrix.subdomain_id == '1070726860'
+        id: r16
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1070726860}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 1316396709 (aa7.cc.cd)
+        if: matrix.subdomain_id == '1316396709'
+        id: r17
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1316396709}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 8679294577 (aa2.cc.cd)
+        if: matrix.subdomain_id == '8679294577'
+        id: r18
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 8679294577}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 3753518263 (f2f.cc.cd)
+        if: matrix.subdomain_id == '3753518263'
+        id: r19
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3753518263}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Renew Domain 2473373489 (as7.cc.cd)
+        if: matrix.subdomain_id == '2473373489'
+        id: r20
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: cfsd_44e5532a2fb00321fec734d8f60b0a3e' \
+            -H 'X-API-Secret: 91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 2473373489}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+  send_summary:
+    needs: renew
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Smart Routed Email
+        env:
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          R1: ${{ needs.renew.outputs.res_1222375126 }}
+          R2: ${{ needs.renew.outputs.res_1814581041 }}
+          R3: ${{ needs.renew.outputs.res_3784124845 }}
+          R4: ${{ needs.renew.outputs.res_1602329997 }}
+          R5: ${{ needs.renew.outputs.res_8706361823 }}
+          R6: ${{ needs.renew.outputs.res_3456659421 }}
+          R7: ${{ needs.renew.outputs.res_2806128211 }}
+          R8: ${{ needs.renew.outputs.res_2792033679 }}
+          R9: ${{ needs.renew.outputs.res_id9 }}
+          R10: ${{ needs.renew.outputs.res_id10 }}
+          R11: ${{ needs.renew.outputs.res_id11 }}
+          R12: ${{ needs.renew.outputs.res_id12 }}
+          R13: ${{ needs.renew.outputs.res_id13 }}
+          R14: ${{ needs.renew.outputs.res_id14 }}
+          R15: ${{ needs.renew.outputs.res_id15 }}
+          R16: ${{ needs.renew.outputs.res_id16 }}
+          R17: ${{ needs.renew.outputs.res_id17 }}
+          R18: ${{ needs.renew.outputs.res_id18 }}
+          R19: ${{ needs.renew.outputs.res_id19 }}
+          R20: ${{ needs.renew.outputs.res_id20 }}
+        run: |
+          python3 - <<'EOF'
+          import os
+          import smtplib
+          from email.header import Header
+          from email.mime.text import MIMEText
+          r1 = os.environ.get("R1", "")
+          r2 = os.environ.get("R2", "")
+          r3 = os.environ.get("R3", "")
+          r4 = os.environ.get("R4", "")
+          r5 = os.environ.get("R5", "")
+          r6 = os.environ.get("R6", "")
+          r7 = os.environ.get("R7", "")
+          r8 = os.environ.get("R8", "")
+          r9 = os.environ.get("R9", "")
+          r10 = os.environ.get("R10", "")
+          r11 = os.environ.get("R11", "")
+          r12 = os.environ.get("R12", "")
+          r13 = os.environ.get("R13", "")
+          r14 = os.environ.get("R14", "")
+          r15 = os.environ.get("R15", "")
+          r16 = os.environ.get("R16", "")
+          r17 = os.environ.get("R17", "")
+          r18 = os.environ.get("R18", "")
+          r19 = os.environ.get("R19", "")
+          r20 = os.environ.get("R20", "")
+          content = f"""【域名 1222375126 (m8m.cc.cd) 结果】
+          {r1}
+          【域名 1814581041 (o6o.cc.cd) 结果】
+          {r2}
+          【域名 3784124845 (m7m.cc.cd) 结果】
+          {r3}
+          【域名 1602329997 (n7n.cc.cd) 结果】
+          {r4}
+          【域名 1005271348 (q1q.cc.cd) 结果】
+          {r13}
+          【域名 3404715460 (as2.cc.cd) 结果】
+          {r14}
+          【域名 8706361823 (realize.cc.cd) 结果】
+          {r5}
+          【域名 3456659421 (m6m.cc.cd) 结果】
+          {r6}
+          【域名 2806128211 (m1m.cc.cd) 结果】
+          {r7}
+          【域名 2792033679 (y2y.cc.cd) 结果】
+          {r8}
+          【域名 2224870716 (s6s.cc.cd) 结果】
+          {r9}
+          【域名 1893289992 (as6.cc.cd) 结果】
+          {r10}
+          【域名 2598019046 (as8.cc.cd) 结果】
+          {r11}
+          【域名 6981160510 (to8.cc.cd) 结果】
+          {r12}
+          【域名 5735127216 (q2q.cc.cd) 结果】
+          {r15}
+          【域名 1070726860 (q8q.cc.cd) 结果】
+          {r16}
+          【域名 1316396709 (aa7.cc.cd) 结果】
+          {r17}
+          【域名 8679294577 (aa2.cc.cd) 结果】
+          {r18}
+          【域名 3753518263 (f2f.cc.cd) 结果】
+          {r19}
+          【域名 2473373489 (as7.cc.cd) 结果】
+          {r20}"""
+          all_responses = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r20]
+          
+          has_real_error = False
+          for resp in all_responses:
+              if "renewal_not_yet_available" in resp:
+                  continue
+              if "error" in resp.lower() or "fail" in resp.lower() or '"success":false' in resp.lower():
+                  has_real_error = True
+                  break
+          mail_host = "smtp.163.com"
+          mail_port = 465
+          sender = "dd33555583@163.com"
+          password = os.environ.get("MAIL_PASS")
+          receivers = ["pp33555583@163.com"]
+          subject = "📢 DNSHE 域名巡检完整合并报告 (共20个)"
+          if has_real_error:
+              receivers.append("421402605@qq.com")
+              subject = "⚠【告警】DNSHE 域名续费出现严重异常"
+              print("检测到真实错误异常，已抄送至 QQ 邮箱！")
+          else:
+              print("所有域名状态正常或处于不在续费期，仅发送至 pp33555583@163.com。")
+          message = MIMEText(content, "plain", "utf-8")
+          message['From'] = Header(sender, 'utf-8')
+          message['To'] = Header(", ".join(receivers), 'utf-8')
+          message['Subject'] = Header(subject, 'utf-8')
+          try:
+              smtp_obj = smtplib.SMTP_SSL(mail_host, mail_port)
+              smtp_obj.login(sender, password)
+              smtp_obj.sendmail(sender, receivers, message.as_string())
+              smtp_obj.quit()
+              print("邮件发送成功！")
+          except Exception as e:
+              print(f"邮件发送失败: {e}")
+              exit(1)
+          EOF
