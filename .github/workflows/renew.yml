@@ -1,5 +1,53 @@
-API Key：
-cfsd_44e5532a2fb00321fec734d8f60b0a3e
-API Secret：
-91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46
-使用方法示例：
+import requests
+
+# ----------------- 配置区域 -----------------
+# 1. 旧账号配置（前14个域名）
+OLD_API_KEY = "你的旧账号API_KEY"
+old_domains = [
+    # {"name": "旧域名1", "id": "旧ID1"},
+    # ... 原有的14个域名 ...
+]
+
+# 2. 新账号配置（这6个新域名）
+NEW_API_KEY = "cfsd_44e5532a2fb00321fec734d8f60b0a3e"
+NEW_API_SECRET = "91eef06757fa2ff4a86279d8b0a0776a5a3db991bea79abe8d97f34690c31c46"
+
+new_domains = [
+    {"name": "q2q.cc.cd", "id": "5735127216"},
+    {"name": "q8q.cc.cd", "id": "1070726860"},
+    {"name": "aa7.cc.cd", "id": "1316396709"},
+    {"name": "aa2.cc.cd", "id": "8679294577"},
+    {"name": "f2f.cc.cd", "id": "3753518263"},
+    {"name": "as7.cc.cd", "id": "2473373489"},
+]
+# --------------------------------------------
+
+def process_domains(api_key, api_secret, domains, group_name):
+    print(f"=== 开始执行: {group_name} ===")
+    for item in domains:
+        domain_name = item["name"]
+        domain_id = item["id"]
+        
+        # 拼接续期请求 URL
+        url = f"https://my.dnshe.com/index.php?m=domain_hub&view=domain&domain_id={domain_id}"
+        
+        # 根据你实际的鉴权方式传入 Key / Secret（这里以 Cookie 或 Headers 形式为例，可按你原脚本微调）
+        headers = {
+            "Cookie": f"api_key={api_key}"  # 如果需要用到 secret，可在此处扩展
+        }
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            print(f"域名: {domain_name} (ID: {domain_id}) -> 状态码: {response.status_code}")
+            
+            # 判断是否返回正常的 JSON 或页面
+            if response.headers.get('content-type', '').startswith('application/json'):
+                print(f"响应内容: {response.json()}")
+            elif "404" in response.text:
+                print(f"错误: 依然返回 404，请确认权限或请求路径。")
+        except Exception as e:
+            print(f"域名 {domain_name} 请求出错: {e}")
+
+if __name__ == "__main__":
+    # 执行新账号组（这 6 个新域名）
+    process_domains(NEW_API_KEY, NEW_API_SECRET, new_domains, "新账号组 (6个新域名)")
