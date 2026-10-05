@@ -13,7 +13,8 @@ jobs:
         subdomain_id: [
           "1222375126", "1814581041", "3784124845", "1602329997", 
           "8706361823", "3456659421", "2806128211", "2792033679",
-          "2224870716", "1893289992", "2598019046", "6981160510"
+          "2224870716", "1893289992", "2598019046", "6981160510",
+          "1005271348", "3404715460"
         ]
 
     outputs:
@@ -29,9 +30,11 @@ jobs:
       res_id10: ${{ steps.r10.outputs.resp }}
       res_id11: ${{ steps.r11.outputs.resp }}
       res_id12: ${{ steps.r12.outputs.resp }}
+      res_id13: ${{ steps.r13.outputs.resp }}
+      res_id14: ${{ steps.r14.outputs.resp }}
 
     steps:
-      # --- 第一个账号的 4 个域名（使用 Secrets 密钥） ---
+      # --- 第一个账号的域名（使用 Secrets 密钥，包含新加的 q1q 和 as2） ---
       - name: Renew Domain 1222375126 (m8m.cc.cd)
         if: matrix.subdomain_id == '1222375126'
         id: r1
@@ -80,6 +83,32 @@ jobs:
             -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
             -H 'Content-Type: application/json' \
             --data '{"subdomain_id": 1602329997}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 1005271348 (q1q.cc.cd)
+        if: matrix.subdomain_id == '1005271348'
+        id: r13
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 1005271348}')
+          echo "resp<<EOF" >> $GITHUB_OUTPUT
+          echo "$RES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Renew Domain 3404715460 (as2.cc.cd)
+        if: matrix.subdomain_id == '3404715460'
+        id: r14
+        run: |
+          RES=$(curl -s -X POST 'https://api005.dnshe.com/index.php?m=domain_hub&endpoint=subdomains&action=renew' \
+            -H 'X-API-Key: ${{ secrets.DNSHE_API_KEY }}' \
+            -H 'X-API-Secret: ${{ secrets.DNSHE_API_SECRET }}' \
+            -H 'Content-Type: application/json' \
+            --data '{"subdomain_id": 3404715460}')
           echo "resp<<EOF" >> $GITHUB_OUTPUT
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -137,7 +166,7 @@ jobs:
           echo "$RES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      # --- 第三个账号的 4 个域名（使用你刚刚生成的第三个账号密钥，包含 s6s、as6、as8、to8） ---
+      # --- 第三个账号的 4 个域名 ---
       - name: Renew Domain 2224870716 (s6s.cc.cd)
         if: matrix.subdomain_id == '2224870716'
         id: r9
@@ -209,6 +238,8 @@ jobs:
           R10: ${{ needs.renew.outputs.res_id10 }}
           R11: ${{ needs.renew.outputs.res_id11 }}
           R12: ${{ needs.renew.outputs.res_id12 }}
+          R13: ${{ needs.renew.outputs.res_id13 }}
+          R14: ${{ needs.renew.outputs.res_id14 }}
         run: |
           python3 - <<'EOF'
           import os
@@ -228,6 +259,8 @@ jobs:
           r10 = os.environ.get("R10", "")
           r11 = os.environ.get("R11", "")
           r12 = os.environ.get("R12", "")
+          r13 = os.environ.get("R13", "")
+          r14 = os.environ.get("R14", "")
 
           content = f"""【域名 1222375126 (m8m.cc.cd) 结果】
           {r1}
@@ -240,6 +273,12 @@ jobs:
 
           【域名 1602329997 (n7n.cc.cd) 结果】
           {r4}
+
+          【域名 1005271348 (q1q.cc.cd) 结果】
+          {r13}
+
+          【域名 3404715460 (as2.cc.cd) 结果】
+          {r14}
 
           【域名 8706361823 (realize.cc.cd) 结果】
           {r5}
@@ -265,7 +304,7 @@ jobs:
           【域名 6981160510 (to8.cc.cd) 结果】
           {r12}"""
 
-          all_responses = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12]
+          all_responses = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, r11, r12, r13, r14]
           
           has_real_error = False
           for resp in all_responses:
@@ -281,11 +320,11 @@ jobs:
           password = os.environ.get("MAIL_PASS")
 
           receivers = ["pp33555583@163.com"]
-          subject = "📢 DNSHE 域名巡检完整合并报告"
+          subject = "📢 DNSHE 域名巡检完整合并报告 (共14个)"
 
           if has_real_error:
               receivers.append("421402605@qq.com")
-              subject = "⚠️【告警】DNSHE 域名续费出现严重异常"
+              subject = "⚠️️【告警】DNSHE 域名续费出现严重异常"
               print("检测到真实错误异常，已抄送至 QQ 邮箱！")
           else:
               print("所有域名状态正常或处于不在续费期，仅发送至 pp33555583@163.com。")
